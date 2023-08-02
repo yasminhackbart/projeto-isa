@@ -21,7 +21,10 @@ export default class TransactionScreen extends Component {
       escaniou:false,
       oqueescaniou:"",
       produto:"",
-      cliente:""
+      cliente:"",
+      nomeproduto:"",
+      nomecliente:""
+
     }
   }
 
@@ -124,24 +127,133 @@ export default class TransactionScreen extends Component {
     })
   }
   clicarbotao = async () => {
-  const procurar = query(collection(db,"Mercadorias"),where("id","==",this.state.produto.trim()))
-  const resposta = await(getDocs(procurar));
+ 
+    var {produto, cliente} = this.state
 
-  if (resposta.empty){
-    alert("Esse id não existe no banco de dados")
-  }
-  else {
-     resposta.forEach((doc) => {
-        if(doc.data().disponibilidade){
-          alert("Transação concluída")
-        }
-        else{
-          alert("Transação não concluída")
-        }
-      });
-  }
+    //await this.pegarNomeProduto(produto)
+    //await this.pegarNomeCliente(cliente)
+  
+    var produtodisponivel = await this.checarProdutoDisponivel(produto)
+    var estoquedisponivel = await this.checarProdutoDisponivelEstoque(produto)
+
+    if (!estoquedisponivel){
+      this.atualizarEstoque(produto)
+    }
+    else {
+      if(produtodisponivel){
+        var{nomecliente,nomeproduto} = this.state;
+        this.atualizarBd(produto,cliente,nomeproduto,nomecliente);
+      }
+    }
 
   }
+
+
+  checarProdutoDisponivel = async(produto)=> {
+    
+    const procurar = query(collection(db,"Mercadorias"),where("id","==",produto.trim()))
+    const resposta = await(getDocs(procurar));
+  
+    var produtodisp = "";
+
+    if (resposta.empty){
+      produtodisp = false
+      alert("Esse id não existe no banco de dados")
+    }
+    else {
+       resposta.forEach((doc) => {
+          if(doc.data().disponível){
+            produtodisp = true
+            alert("Transação concluída")
+          }
+          else{
+            produtodisp = false
+            alert("Transação não concluída")
+          }
+        });
+    }
+    return produtodisp;
+  }
+
+
+  atualizarBd = async (produto,cliente, nomeproduto, nomecliente) => {
+
+    const prodRef = doc(db, "Mercadorias",produto.trim());
+         await updateDoc(prodRef,{
+             estoque:increment(-1)
+         });
+
+         this.setState({
+          produto:"",
+          cliente:""
+         });
+
+         
+  }
+    
+ checarProdutoDisponivelEstoque = async (produto) => {
+  var estoque =""
+  const procurar = query(collection(db,"Mercadorias"),where("id","==",produto.trim()))
+         const resposta = await(getDocs(procurar));
+
+         resposta.forEach((doc) => {
+          if(doc.data().estoque <= 0 ){
+            estoque = false;
+            alert("Acabou Estoque")
+          }
+          else {
+            estoque = true;
+          }
+        })
+  return estoque;
+ }
+
+ atualizarEstoque = async(produto) =>{
+
+    const prodRef = doc(db, "Mercadorias",produto.trim());
+    await updateDoc(prodRef,{
+        disponível:false
+    });
+
+    this.setState({
+    produto:"",
+    cliente:""
+    });
+
+ }
+  
+  
+
+  pegarNomeProduto = async (produto) =>{
+    const procurar = query(collection(db,"Mercadorias"),where("id","==",produto.trim()))
+    const resposta = await(getDocs(q));
+
+    if(!resposta.empty){
+        resposta.forEach((doc) => {
+            this.setState({
+                nomeproduto: doc.data().nome
+            });
+        });
+    }else{
+        Alert.alert("Produto não encontrado!");
+    }
+  }
+
+  pegarNomeCliente = async (cliente) =>{
+    const procurar = query(collection(db,"Mercadorias"),where("id","==",cliente.trim()))
+    const resposta = await(getDocs(q));
+
+    if(!resposta.empty){
+        resposta.forEach((doc) => {
+            this.setState({
+                nomecliente: doc.data().nome
+            });
+        });
+    }else{
+        Alert.alert("Cliente não encontrado!");
+    }
+  }
+
 }
 
 //criação de estilo
