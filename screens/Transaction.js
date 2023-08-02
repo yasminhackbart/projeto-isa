@@ -2,6 +2,10 @@ import React, { Component } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput} from "react-native";
 import {Camera,Permissions} from "expo-camera";
 import {BarCodeScanner} from "expo-barcode-scanner";
+import { collection,addDoc, getDocs, doc, query,where,
+  updateDoc, serverTimestamp,increment, limit } 
+  from "firebase/firestore";
+import db from "../bancodedados.js"
 
 export default class TransactionScreen extends Component {
   constructor(){
@@ -45,6 +49,7 @@ export default class TransactionScreen extends Component {
                 placeholder={"ID do Produto"}
                 placeholderTextColor={"#FFFFFF"}
                 value={this.state.produto}
+                onChangeText = {texto => this.setState ({produto:texto})} 
               />
               <TouchableOpacity
                 style={styles.scanbutton}
@@ -59,6 +64,7 @@ export default class TransactionScreen extends Component {
                 placeholder={"ID do Cliente"}
                 placeholderTextColor={"#FFFFFF"}
                 value={this.state.cliente}
+                onChangeText = {texto => this.setState ({cliente:texto})}
               />
               <TouchableOpacity
                 style={styles.scanbutton}
@@ -68,7 +74,12 @@ export default class TransactionScreen extends Component {
               </TouchableOpacity>
             </View>
           </View>
-    
+              <TouchableOpacity
+              onPress = {this.clicarbotao}
+              style={styles.botaoenviar}>
+                <Text
+                style={styles.textoenviar}>Enviar</Text>
+              </TouchableOpacity>
       </View>
     );
   }
@@ -112,8 +123,25 @@ export default class TransactionScreen extends Component {
       estadoapp:estadoapp
     })
   }
+  clicarbotao = async () => {
+  const procurar = query(collection(db,"Mercadorias"),where("id","==",this.state.produto.trim()))
+  const resposta = await(getDocs(procurar));
 
+  if (resposta.empty){
+    alert("Esse id não existe no banco de dados")
+  }
+  else {
+     resposta.forEach((doc) => {
+        if(doc.data().disponibilidade){
+          alert("Transação concluída")
+        }
+        else{
+          alert("Transação não concluída")
+        }
+      });
+  }
 
+  }
 }
 
 //criação de estilo
@@ -170,6 +198,20 @@ const styles = StyleSheet.create({
     fontFamily: "EBGaramond_400Regular",
     textAlign:"center",
     marginLeft:30
+  },
+  botaoenviar: {
+    backgroundColor: "white",
+    marginTop: 90,
+    width: 70,
+    height: 35,
+    borderRadius: 5,
+    borderWidth: 2
+
+  },
+  textoenviar: {
+    fontFamily: "EBGaramond_400Regular",
+    fontSize: 25,
   }
+   
 
 });
