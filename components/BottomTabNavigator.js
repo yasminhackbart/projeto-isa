@@ -36,8 +36,8 @@ export default class BottomTabNavigator extends Component {
           })}
           
             tabBarOptions={{
-              activeTintColor: "black",
-              inactiveTintColor: "#0b7542",
+              activeTintColor: "#a4ad8e",
+              inactiveTintColor: "black",
               style: {
                 height: 130,
                 borderTopWidth: 0,
