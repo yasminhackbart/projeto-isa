@@ -235,7 +235,7 @@ export default class TransactionScreen extends Component {
             });
         });
     }else{
-        Alert.alert("Produto não encontrado!");
+        alert("Produto não encontrado!");
     }
   }
 
@@ -250,7 +250,7 @@ export default class TransactionScreen extends Component {
             });
         });
     }else{
-        Alert.alert("Cliente não encontrado!");
+        alert("Cliente não encontrado!");
     }
   }
 
